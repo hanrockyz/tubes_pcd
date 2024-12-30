@@ -29,44 +29,71 @@ def extract_glcm_features(image):
     return features
 
 # Streamlit interface
-st.title("Plant Disease Prediction")
+st.set_page_config(page_title="Plant Disease Detection", page_icon="🌿", layout="wide")
 
-st.write("Upload an apple leaf image to predict its disease based on GLCM features.")
+# Sidebar with app information
+with st.sidebar:
+    st.title("🌿 Plant Disease Detection")
+    st.write("This app uses a trained Random Forest model with GLCM features to classify apple leaf diseases.")
+    st.write("### Instructions:")
+    st.write("1. Upload an image of an apple leaf (JPEG or PNG).")
+    st.write("2. Wait for the app to process the image.")
+    st.write("3. View the disease prediction result.")
+
+# Main app interface
+st.title("Plant Disease Detection with GLCM Features")
+st.markdown(
+    """
+    Upload an apple leaf image below to predict its disease type. 
+    The model is trained to classify the following conditions:
+    - Healthy
+    - Cedar Apple Rust
+    - Black Rot
+    - Apple Scab
+    """
+)
 
 # Upload image
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("📤 Upload an image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Read the uploaded image
-    image = Image.open(uploaded_file)
-    image = np.array(image)
-    
-    # Check if the image is in RGB format
-    if len(image.shape) == 2:
-        image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    st.write("📷 Image uploaded successfully!")
 
-    # Extract GLCM features
-    features = extract_glcm_features(image)
+    # Display a spinner while processing the image
+    with st.spinner("Processing the image..."):
+        # Read the uploaded image
+        image = Image.open(uploaded_file)
+        image = np.array(image)
 
-    # Reshape features for prediction
-    features = np.array(features).reshape(1, -1)
+        # Check if the image is in RGB format
+        if len(image.shape) == 2:
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
-    # Predict disease
-    prediction = model.predict(features)
-    predicted_label = labels[prediction[0]]
+        # Extract GLCM features
+        features = extract_glcm_features(image)
 
-    # Show the uploaded image
-    st.image(image, caption="Uploaded Image", use_container_width=True)
+        # Reshape features for prediction
+        features = np.array(features).reshape(1, -1)
 
-    # Display prediction
-    st.write(f"Predicted Disease: {predicted_label}")
+        # Predict disease
+        prediction = model.predict(features)
+        predicted_label = labels[prediction[0]]
 
-    # Optionally display additional details based on the prediction
-    if predicted_label == "Healthy":
-        st.write("The apple is healthy!")
-    elif predicted_label == "Cedar_apple_rust":
-        st.write("The apple leaf has Cedar Apple Rust disease.")
-    elif predicted_label == "Black_rot":
-        st.write("The apple leaf has Black Rot disease.")
-    elif predicted_label == "Apple_scab":
-        st.write("The apple leaf has Apple Scab disease.")
+        # Show the uploaded image
+        st.image(image, caption="Uploaded Image", use_container_width=True, channels="RGB")
+
+        # Display extracted features (optional)
+        with st.expander("🧪 Extracted GLCM Features (Optional)"):
+            st.write(features)
+
+        # Display prediction result
+        if predicted_label == "Healthy":
+            st.success(f"🌱 Predicted Disease: {predicted_label} - The apple is healthy!")
+        elif predicted_label == "Cedar_apple_rust":
+            st.error(f"🍂 Predicted Disease: {predicted_label} - The apple leaf has Cedar Apple Rust disease.")
+        elif predicted_label == "Black_rot":
+            st.warning(f"🛑 Predicted Disease: {predicted_label} - The apple leaf has Black Rot disease.")
+        elif predicted_label == "Apple_scab":
+            st.warning(f"🍎 Predicted Disease: {predicted_label} - The apple leaf has Apple Scab disease.")
+else:
+    st.info("📥 Please upload an image to get started.")
