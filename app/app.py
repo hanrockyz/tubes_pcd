@@ -29,7 +29,7 @@ def extract_glcm_features(image):
     return features
 
 # Streamlit interface
-st.title("Apple Disease Prediction")
+st.title("Plant Disease Prediction")
 
 st.write("Upload an apple leaf image to predict its disease based on GLCM features.")
 
